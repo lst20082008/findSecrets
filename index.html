@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        #inputSecret {
+            display: flex;
+            width: 300px;
+            margin-bottom: 1em;
+            border: none;
+            border-bottom: 2px solid silver;
+            font-size: 1em;
+            outline: none;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.15);
+            border-top: 5px solid #009578;
+            border-bottom: 5px solid #009578;
+        }
+        .todo{
+            display: flex;
+            justify-content: space-between;
+            padding: 1em;
+        }
+        .todo_value {
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: "Quicksand", sans-serif;
+            font-size: 1em;
+            font-weight: bold;
+            flex-grow: 1;
+        }
+        .todo:has(.todo_checkbox:checked) {
+            color: #555555;
+            background: #eeeeee;
+            text-decoration: line-through;
+            order: 1;
+        }
+    </style>
+    <title>Document</title>
+</head>
+<body>
+    <input type="text" id="inputSecret" placeholder="enter numbers">
+    <div class="container">
+    </div>
+    <script type="text/javascript">
+        const log = (input) => {
+            const newDiv = document.createElement("div");
+            newDiv.innerHTML = input;
+            document.getElementById("console").appendChild(newDiv);
+        };
+        const createTodoElem = (secret) => {
+            const todoDiv = document.createElement('div');
+            const todoValue = document.createElement('div');
+            const todoCheckbox = document.createElement('input');
+            todoDiv.className = "todo";
+            todoValue.className = "todo_value";
+            todoValue.innerText = secret;
+            todoCheckbox.className = "todo_checkbox"
+            todoCheckbox.type = "checkbox"
+            todoDiv.appendChild(todoValue);
+            todoDiv.appendChild(todoCheckbox);
+            return todoDiv;
+        }
+        const display4Nums = (arr) => {
+            /* nums - number[] - all nums
+             * visited - number[] - do we used this number
+             * curAns - number[] - the current answer
+             * return - -1 for not found
+             *        - number for the posible secret
+            */
+            const dfs = (nums, visited, curAns) => {
+                if (curAns.length >= 4) {
+                    return [curAns];
+                }
+                const ret = [];
+                for (let i = 0; i < nums.length; i++) {
+                    if (!visited[i]) {
+                        visited[i] = 1;
+                        const res = dfs(nums, visited, [...curAns, nums[i]])
+                        if (res != -1) {
+                            res.map(r => ret.push(r));
+                        }
+                        visited[i] = 0;
+                    }
+                }
+                return ret.length == 0 ? -1 : ret;
+            }
+            return dfs(arr, [0, 0, 0, 0], []);
+        };
+        const display3Nums = (arr) => {
+            const ret = [];
+            for (let i = 0; i < 3; i++) {
+                display4Nums([...arr, arr[i]]).forEach(s => ret.push(s));
+            }
+            return ret;
+        };
+        // input number[][]
+        // output string[]
+        const removeDump = (secrets) => {
+            const s = new Set();
+            secrets.forEach(secret => {
+                // number[4]
+                let curString = '';
+                secret.forEach(c => {
+                    curString += c.toString();
+                });
+                s.add(curString);
+            });
+            const ret = [];
+            s.forEach(r => {
+                ret.push(r);
+            });
+            return ret;
+        };
+        document.getElementById("inputSecret").addEventListener("input", (ev) => {
+            const text = document.getElementById("inputSecret").value;
+            document.getElementsByClassName("container").item(0).innerHTML = null;
+            if (text.length == 3 || text.length == 4) {
+                const arr = [];
+                for (let i = 0; i < text.length; i++) {
+                    arr.push(parseInt(text.at(i)));
+                }
+                let secrets = text.length == 3 ?
+                    display3Nums(arr) : display4Nums(arr);
+                secrets = removeDump(secrets);
+                secrets.forEach(s => {
+                    document.getElementsByClassName("container").item(0).appendChild(createTodoElem(s));
+                });
+            }
+        });
+    </script>
+</body>
+</html>
